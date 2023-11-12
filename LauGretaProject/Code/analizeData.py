@@ -7,28 +7,43 @@ import tensorflow as tf
 product_data = pd.read_csv("datathon/dataset/product_data.csv")
 outfit_data = pd.read_csv("datathon/dataset/outfit_data.csv")
 
+# PRODUCT_DATA
+
+# Features of each column
+cols_product_data = list(product_data.columns)
+dict_list_features={p:(product_data[p].unique().tolist()) for p in product_data}
+
+# OUTFIT_DATA
+
+# List outfit code
 list_cod_outfit = list(outfit_data["cod_outfit"])
 
+# Dictionary of outfit code and products code
 df_outfit_products_codes = (outfit_data.groupby("cod_outfit")["cod_modelo_color"].apply(list))
 dic_outfit_products_codes = (df_outfit_products_codes.to_dict())
+
+# List of products code of an outfit
 def outfit_codes(outfit_code, dic_oc=dic_outfit_products_codes):
   return dic_oc[outfit_code]
 # print(outfit_codes(2))
 
+# ANSALYSE PRODUCT_DATA AND OUTFIT_DATA
+
+# Dataset of a product features
 def product(code, df=product_data):
   new_df = df.loc[df["cod_modelo_color"] == code]
   return new_df
-# print(product("53103803-OR", "des_fabric"))
+# print(product("53103803-OR"))
 
+# Dataset list of a product features of an outfit
 def product_list(list_code):
   l=[product(c) for c in list_code]
   return l
 # print(product_list(outfit_codes(2)))
 
-cols = list(product_data.columns)
-def summarize_data(outfit_code, k=cols):
+# Dictionary of features of the prodocts that are in an outfit
+def summarize_data(outfit_code, k=cols_product_data):
   list_df = product_list(outfit_codes(outfit_code))
-  print(list_df)
   d={}
   for df in list_df:
     for c in k:
@@ -36,10 +51,67 @@ def summarize_data(outfit_code, k=cols):
         d[c] = []
       else:
         d[c].append(df[c].item())
-  print(d)
-summarize_data(2)
+  return(d)
+dic_outfit_products_data = summarize_data(2)
+# print(dic_outfit_products_data)
+
+# des_prod = dic_outfit_products_data["des_product_aggregated_family"]
+# Create a list of lists
+list_outfit_code = dic_outfit_products_codes.keys()
+list_specific_values = []
+for o in list_outfit_code:
+  l = (summarize_data(o))["des_product_aggregated_family"]
+  if "Tops" in l:
+    list_specific_values.append(l)
+# print(list_specific_values)
+
+# Join lists to a dictionary
+dict_combinations = {}
+for element in list_specific_values:
+  for e in element:
+    if e in dict_combinations.keys():
+      dict_combinations[e] += 1
+    else:
+      dict_combinations[e] = 1
+print(dict_combinations)
 
 
+
+#  for e in element:
+#    if e not in all_in_one:
+ #     all_in_one.append(e)
+#print(all_in_one)
+
+"""
+for c in list_cod_outfit:
+  convinations = summarize_data(c)["des_product_aggregated_family"]
+  dict_convinations = {}
+  for convi in convinations:
+    if convi in dict_convinations.keys():
+      dict_convinations[convi] += 1
+    else:
+      dict_convinations[convi] = 1
+  print(dict_convinations)
+
+
+# List with the
+def value_subset(code, col, df=product_data):
+  new_df = df.loc[df["cod_modelo_color"] == code, col].item()
+  return new_df
+
+def characteristichs_outfits(col, outfit):
+  list_code = outfit_codes(outfit)
+  l=[value_subset(code, col) for code in list_code]
+  return l
+print(characteristichs_outfits("cod_color_code", 2))
+
+
+"""
+
+
+# sqldf(f'''SELECT des_agrup_color_eng, des_fabric, des_product_category, des_product_aggregated_family, des_product_family, des_product_type
+#         FROM product_data pm natural inner join outfit_data o
+#         WHERE {list_id[i]} == o.cod_outfit and des_product_category == "Home"''')
 
 
 
